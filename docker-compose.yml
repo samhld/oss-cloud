@@ -1,0 +1,45 @@
+version: '3'
+services:
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    volumes:
+      - "${OSS_CLOUD_DEMO_PATH}/telegraf.conf:/etc/telegraf/telegraf.conf"
+    environment:
+      - INFLUX_HOST=${INFLUX_DOCKER_HOST}
+      - INFLUX_LOCAL_TOKEN
+
+  influxd:
+    # image: influxdb-latest-master
+    build: ./influxdb
+    container_name: influxd
+    volumes:
+      - "${OSS_CLOUD_DEMO_PATH}/influxdb/data:/var/lib/.influxdbv2"
+    environment:
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=mqtt
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
+    ports:
+      - "8086:8086"
+
+  influx_cli:
+    # image: influxdb:2.1.0
+    build: ./influx-cli
+    container_name: influx_cli
+    environment:
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+    depends_on:
+      - influxd
+    volumes:
+      - "${OSS_CLOUD_DEMO_PATH}/influx-cli/entrypoint.sh:/go/influx-cli/entrypoint.sh"
+    entrypoint: /go/influx-cli/entrypoint.sh
