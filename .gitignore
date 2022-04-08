@@ -1,2 +1,2 @@
 bin/
-./influxdb/data
+influxdb/data

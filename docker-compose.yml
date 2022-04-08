@@ -13,17 +13,18 @@ services:
   #     - INFLUX_BUCKET=${INFLUX_LOCAL_BUCKET}
 
   influxd:
-    # image: influxdb-latest-master
-    build: ./influxdb
+    image: influxdb:latest
+    # build: ./influxdb
     container_name: influxd
     volumes:
-      - "${OSS_CLOUD_DEMO_PATH}/influxdb/data:/var/lib/.influxdbv2"
+      - "${OSS_CLOUD_DEMO_PATH}/influxdb/data:/var/lib/influxdb2"
     environment:
       - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME}
       - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD}
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_LOCAL_ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=sam-bucket
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_LOCAL_TOKEN}
+      - DOCKER_INFLUXDB_INIT_MODE=setup
     ports:
       - "8086:8086"
 
@@ -37,6 +38,9 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_LOCAL_ORG}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_LOCAL_TOKEN}
       - INFLUX_REMOTE_BUCKET=${INFLUX_REMOTE_BUCKET}
+      - INFLUX_REMOTE_HOST=${INFLUX_REMOTE_HOST}
+      - INFLUX_REMOTE_TOKEN=${INFLUX_REMOTE_TOKEN}
+      - INFLUX_REMOTE_ORG_ID=${INFLUX_REMOTE_ORG_ID}
     deploy:
       restart_policy:
         condition: on-failure
@@ -45,4 +49,5 @@ services:
       - influxd
     volumes:
       - "${OSS_CLOUD_DEMO_PATH}/influx-cli/entrypoint.sh:/go/influx-cli/entrypoint.sh"
+      - "${OSS_CLOUD_DEMO_PATH}/downsample_procstat.flux:/go/influx-cli/downsample_procstat.flux"
     entrypoint: /go/influx-cli/entrypoint.sh
